@@ -1,0 +1,78 @@
+before:
+  hooks:
+    - go mod download
+
+env:
+  - GO111MODULE=on
+
+builds:
+  -
+    id: supercli
+    binary: supercli
+    dir: cli
+
+    env:
+      - CGO_ENABLED=0
+
+    # ldflags:
+    #   - -s -w
+    #   - -X github.com/tarantool/go-guidelines/cli/version.gitTag={{ .Tag }}
+    #   - -X github.com/tarantool/go-guidelines/cli/version.gitCommit={{ .ShortCommit }}
+
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+    # hooks:
+    #   pre:
+    #     - mage genCompletion # generate completion scripts
+
+archives:
+  -
+    id: "supercli"
+    builds: ['supercli']
+    format: tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Version }}.{{ .Os }}.{{ .Arch }}"
+    replacements:
+      darwin: macOS
+      linux: Linux
+    files:
+      - README.md
+      - LICENSE
+      - AUTHORS
+      - CHANGELOG.md
+      # - completion/*/**
+
+snapshot:
+  name_template: "{{ .Tag }}-{{ .ShortCommit }}"
+
+changelog:
+  skip: true
+
+release:
+  draft: true
+
+nfpms:
+  -
+    id: "supercli"
+    builds: ['supercli']
+    formats:
+        - deb
+        - rpm
+    homepage: "https://github.com/tarantool/go-guidelines"
+    maintainer: "Elizaveta Dokshina <eldokshina@mail.ru>"
+    description: "The most powerful CLI in the world"
+    license: "BSD"
+    # files:
+    #   "completion/bash/supercli": "/etc/bash_completion.d/supercli"
+
+    overrides:
+      rpm:
+        replacements:
+          amd64: x86_64
+        file_name_template: "{{ .ProjectName }}-{{ .Version }}.{{ .Arch }}"
+
+      deb:
+        file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
